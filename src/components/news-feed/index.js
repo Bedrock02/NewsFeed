@@ -17,16 +17,15 @@ class NewsFeed extends React.Component {
     };
     this.getNewsArticles = this.getNewsArticles.bind(this);
     this.navigate = this.navigate.bind(this);
+    this.searchArticles = this.searchArticles.bind(this);
   }
   componentDidMount() {
     this.getNewsArticles();
   }
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.offset === this.state.offset) {
-      return;
+    if (prevState.offset !== this.state.offset || prevState.searchQuery !== this.state.searchQuery) {
+      this.setArticles();
     }
-    console.log("SETARTICLES");
-    this.setArticles();
   }
 
   getNewsArticles() {
@@ -48,7 +47,7 @@ class NewsFeed extends React.Component {
     } else {
       visibleArticles = this.state.articles.slice(
         0 + this.state.offset,
-        9 + this.state.offset
+        9 + this.state.offset,
       )
     }
     this.setState({visibleArticles});
@@ -61,9 +60,17 @@ class NewsFeed extends React.Component {
     }
     const newOffset = direction === 'prev' ? this.state.offset - 10 : this.state.offset + 10;
     this.setState({offset: newOffset});
+    window.scrollTo(0, 0,);
   }
+
+  searchArticles() {
+    let input = document.getElementById("searchInput").value;
+    this.setState({searchQuery: input, offset: 0});
+    this.getNewsArticles();
+    this.setArticles();
+  }
+
   render() {
-    console.log(this.state.visibleArticles);
     const articles = this.state.visibleArticles.map((article, index) => {
       return (<NewsArticle key={article.title} article={article}/>);
     });
@@ -72,10 +79,10 @@ class NewsFeed extends React.Component {
       <>
         <div className="row" id="searchComponent">
           <div className="col-10">
-            <input style={NewsFeedStyles.search} type="text" placeholder="Mosaic" />
+            <input id="searchInput" style={NewsFeedStyles.search} type="text" placeholder="Mosaic" />
           </div>
           <div className="col">
-            <button style={NewsFeedStyles['search-button']}type="button" className="btn btn-primary">Search</button>
+            <button onClick={this.searchArticles} style={NewsFeedStyles['search-button']}type="button" className="btn btn-primary">Search</button>
           </div>
         </div>
 
@@ -85,10 +92,15 @@ class NewsFeed extends React.Component {
 
         <div className="row" style={NewsFeedStyles.navigation}>
           <div className="col-6">
-            <button onClick={() => {this.navigate('prev')}} type="button" className="btn btn-light">Prev</button>
+            {this.state.offset > 0 &&
+              <button onClick={() => {this.navigate('prev')}} type="button" className="btn btn-light">Prev</button>
+            }
           </div>
+
           <div className="col-6">
-            <button onClick={() => {this.navigate('next')}} type="button" className="btn btn-light">Next</button>
+            {this.state.offset < this.state.articles.length &&
+              <button onClick={() => {this.navigate('next')}} type="button" className="btn btn-light">Next</button>
+            }
           </div>
         </div>
       </>
